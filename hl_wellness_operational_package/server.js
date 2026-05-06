@@ -216,46 +216,86 @@ HL Wellness & Beauty
 }
 
 async function sendOrderEmails(order) {
-  if (!nodemailer) {
-    return { sent: false, reason: "nodemailer not installed" };
+
+  const apiKey = process.env.BREVO_API_KEY;
+
+  if (!apiKey) {
+    return {
+      sent: false,
+      reason: "BREVO_API_KEY missing"
+    };
   }
 
-  const host = process.env.SMTP_HOST;
-  const port = Number(process.env.SMTP_PORT || 587);
-  const user = process.env.SMTP_USER;
-  const pass = process.env.SMTP_PASS;
-  const from = process.env.SMTP_FROM || user;
+  const senderEmail =
+    process.env.SMTP_FROM || "darrencaruana47@gmail.com";
 
-  if (!host || !user || !pass || !from) {
-    return { sent: false, reason: "SMTP env vars missing" };
-  }
+  const adminEmail =
+    process.env.ORDER_ADMIN_EMAIL || "darrencaruana47@gmail.com";
 
-  const transporter = nodemailer.createTransport({
-    host,
-    port,
-    secure: port === 465,
-    auth: { user, pass }
-  });
-
-  const adminEmail = process.env.ORDER_ADMIN_EMAIL || "darrencaruana47@gmail.com";
   const repEmail = order.rep?.email;
-  const sellerRecipients = [adminEmail, repEmail].filter(Boolean).join(",");
 
-  await transporter.sendMail({
-    from,
-    to: sellerRecipients,
-    subject: `New HL Wellness Order ${order.orderRef}`,
-    text: buildSellerOrderText(order)
-  });
+  const sellerRecipients = [
+    { email: adminEmail },
+    ...(repEmail ? [{ email: repEmail }] : [])
+  ];
 
-  await transporter.sendMail({
-    from,
-    to: order.customer.email,
-    subject: `Order received ${order.orderRef}`,
-    text: buildCustomerOrderText(order)
-  });
+  try {
 
-  return { sent: true };
+    // Admin / Rep email
+    await fetch("https://api.brevo.com/v3/smtp/email", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "api-key": apiKey
+      },
+      body: JSON.stringify({
+        sender: {
+          name: "HL Wellness & Beauty",
+          email: senderEmail
+        },
+        to: sellerRecipients,
+        subject: `New HL Wellness Order ${order.orderRef}`,
+        textContent: buildSellerOrderText(order)
+      })
+    });
+
+    // Customer email
+    await fetch("https://api.brevo.com/v3/smtp/email", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "api-key": apiKey
+      },
+      body: JSON.stringify({
+        sender: {
+          name: "HL Wellness & Beauty",
+          email: senderEmail
+        },
+        to: [
+          {
+            email: order.customer.email
+          }
+        ],
+        subject: `Order received ${order.orderRef}`,
+        textContent: buildCustomerOrderText(order)
+      })
+    });
+
+    console.log("Emails sent successfully.");
+
+    return {
+      sent: true
+    };
+
+  } catch (error) {
+
+    console.error("Brevo email error:", error);
+
+    return {
+      sent: false,
+      reason: error.message
+    };
+  }
 }
 
 function serveStatic(req, res) {
