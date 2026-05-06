@@ -417,7 +417,37 @@ const server = http.createServer(async (req, res) => {
 
       return sendJson(res, 200, result);
     }
+  if (req.method === "POST" && req.url === "/api/change-password") {
 
+  const body = await readBody(req);
+  const data = JSON.parse(body || "{}");
+
+  const currentPin = String(data.currentPin || "");
+  const newPin = String(data.newPin || "");
+
+  if (!newPin || newPin.length < 4) {
+    return sendJson(res, 400, {
+      error: "New PIN must be at least 4 characters."
+    });
+  }
+
+  const repCode = Object.keys(repPins).find(rep => {
+    return repPins[rep] === currentPin;
+  });
+
+  if (!repCode) {
+    return sendJson(res, 401, {
+      error: "Current PIN incorrect."
+    });
+  }
+
+  repPins[repCode] = newPin;
+
+  return sendJson(res, 200, {
+    ok: true,
+    message: "PIN changed successfully."
+  });
+}
     serveStatic(req, res);
   } catch (error) {
     console.error(error);
