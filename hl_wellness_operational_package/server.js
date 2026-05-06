@@ -394,16 +394,17 @@ const server = http.createServer(async (req, res) => {
 
       const saved = saveOrder(order);
 
-      const emailResult = await sendOrderEmails(saved).catch(error => ({
-        sent: false,
-        reason: error.message
-      }));
+      sendOrderEmails(saved)
+  .then(result => console.log("Email result:", result))
+  .catch(error => console.error("Email failed:", error.message));
 
-      return sendJson(res, 200, {
-        ok: true,
-        orderRef: saved.orderRef,
-        email: emailResult
-      });
+return sendJson(res, 200, {
+  ok: true,
+  orderRef: saved.orderRef,
+  email: {
+    sent: "background"
+  }
+});
     }
 
     if (req.method === "GET" && req.url.startsWith("/api/orders")) {
