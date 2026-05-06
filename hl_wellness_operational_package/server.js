@@ -30,13 +30,35 @@ const PORT = process.env.PORT || 3000;
 const ROOT = __dirname;
 const ORDERS_DIR = path.join(ROOT, "orders");
 const ORDERS_FILE = path.join(ORDERS_DIR, "orders.json");
-const ADMIN_PIN = process.env.ADMIN_PIN || "1234";
+
+// IMPORTANT: Set ADMIN_PIN in Render Environment Variables.
+const ADMIN_PIN = process.env.ADMIN_PIN;
 
 const REPS = {
-  "1847": { name: "Darren", code: "DC", herbalifeId: process.env.REP_1847_HERBALIFE_ID || "DARREN_HERBALIFE_ID_HERE", email: process.env.REP_1847_EMAIL || "darrencaruana47@gmail.com" },
-  "3729": { name: "Yanice", code: "YA", herbalifeId: process.env.REP_3729_HERBALIFE_ID || "YANICE_HERBALIFE_ID_HERE", email: process.env.REP_3729_EMAIL || "yanice@email.com" },
-  "6408": { name: "Joshua", code: "JO", herbalifeId: process.env.REP_6408_HERBALIFE_ID || "JOSHUA_HERBALIFE_ID_HERE", email: process.env.REP_6408_EMAIL || "joshua@email.com" },
-  "9152": { name: "Sister / Upline", code: "UP", herbalifeId: process.env.REP_9152_HERBALIFE_ID || "SISTER_HERBALIFE_ID_HERE", email: process.env.REP_9152_EMAIL || "sister@email.com" }
+  "1847": {
+    name: "Darren",
+    code: "DC",
+    herbalifeId: process.env.REP_1847_HERBALIFE_ID || "DARREN_HERBALIFE_ID_HERE",
+    email: process.env.REP_1847_EMAIL || "darrencaruana47@gmail.com"
+  },
+  "3729": {
+    name: "Yanice",
+    code: "YA",
+    herbalifeId: process.env.REP_3729_HERBALIFE_ID || "YANICE_HERBALIFE_ID_HERE",
+    email: process.env.REP_3729_EMAIL || "yanice@email.com"
+  },
+  "6408": {
+    name: "Joshua",
+    code: "JO",
+    herbalifeId: process.env.REP_6408_HERBALIFE_ID || "JOSHUA_HERBALIFE_ID_HERE",
+    email: process.env.REP_6408_EMAIL || "joshua@email.com"
+  },
+  "9152": {
+    name: "Sister / Upline",
+    code: "UP",
+    herbalifeId: process.env.REP_9152_HERBALIFE_ID || "SISTER_HERBALIFE_ID_HERE",
+    email: process.env.REP_9152_EMAIL || "sister@email.com"
+  }
 };
 
 const mimeTypes = {
@@ -61,13 +83,16 @@ function sendJson(res, status, data) {
 function readBody(req) {
   return new Promise((resolve, reject) => {
     let body = "";
+
     req.on("data", chunk => {
       body += chunk;
+
       if (body.length > 1_000_000) {
         req.destroy();
         reject(new Error("Request body too large"));
       }
     });
+
     req.on("end", () => resolve(body));
     req.on("error", reject);
   });
@@ -75,6 +100,7 @@ function readBody(req) {
 
 function readOrders() {
   if (!fs.existsSync(ORDERS_FILE)) return [];
+
   try {
     return JSON.parse(fs.readFileSync(ORDERS_FILE, "utf8"));
   } catch {
@@ -89,15 +115,22 @@ function writeOrders(orders) {
 
 function saveOrder(order) {
   const orders = readOrders();
-  const orderRef = `HL-${new Date().getFullYear()}-${crypto.randomBytes(3).toString("hex").toUpperCase()}`;
+
+  const orderRef = `HL-${new Date().getFullYear()}-${crypto
+    .randomBytes(3)
+    .toString("hex")
+    .toUpperCase()}`;
+
   const savedOrder = {
     orderRef,
     createdAt: new Date().toISOString(),
     status: "New",
     ...order
   };
+
   orders.push(savedOrder);
   writeOrders(orders);
+
   return savedOrder;
 }
 
@@ -105,11 +138,16 @@ function money(value) {
   return `€${Number(value || 0).toFixed(2)}`;
 }
 
-function buildOrderText(order) {
-  const items = (order.items || []).map(item => {
-    const lineTotal = item.quoteRequired ? "Quote Required" : money(Number(item.price || 0) * Number(item.quantity || 1));
-    return `- ${item.name} x${item.quantity || 1} — ${lineTotal}`;
-  }).join("\n");
+function buildSellerOrderText(order) {
+  const items = (order.items || [])
+    .map(item => {
+      const lineTotal = item.quoteRequired
+        ? "Quote Required"
+        : money(Number(item.price || 0) * Number(item.quantity || 1));
+
+      return `- ${item.name} x${item.quantity || 1} — ${lineTotal}`;
+    })
+    .join("\n");
 
   return `
 Order Reference: ${order.orderRef}
@@ -138,8 +176,43 @@ Quote Required Items: ${order.totals?.hasQuoteRequiredItems ? "Yes" : "No"}
 `.trim();
 }
 
+function buildCustomerOrderText(order) {
+  const items = (order.items || [])
+    .map(item => {
+      const lineTotal = item.quoteRequired
+        ? "Quote Required"
+        : money(Number(item.price || 0) * Number(item.quantity || 1));
+
+      return `- ${item.name} x${item.quantity || 1} — ${lineTotal}`;
+    })
+    .join("\n");
+
+  return `
+Hi ${order.customer?.name || ""},
+
+Thank you. We received your order/enquiry.
+
+Order Reference: ${order.orderRef}
+
+Items:
+${items}
+
+Fixed Total: ${money(order.totals?.fixedTotal)}
+Quote Required Items: ${order.totals?.hasQuoteRequiredItems ? "Yes" : "No"}
+
+Payment will be completed manually using your selected method.
+
+Your assigned team member will contact you shortly.
+
+HL Wellness & Beauty
+`.trim();
+}
+
 async function sendOrderEmails(order) {
-  if (!nodemailer) return { sent: false, reason: "nodemailer not installed" };
+  if (!nodemailer) {
+    return { sent: false, reason: "nodemailer not installed" };
+  }
+
   const host = process.env.SMTP_HOST;
   const port = Number(process.env.SMTP_PORT || 587);
   const user = process.env.SMTP_USER;
@@ -160,20 +233,19 @@ async function sendOrderEmails(order) {
   const adminEmail = process.env.ORDER_ADMIN_EMAIL || "darrencaruana47@gmail.com";
   const repEmail = order.rep?.email;
   const sellerRecipients = [adminEmail, repEmail].filter(Boolean).join(",");
-  const text = buildOrderText(order);
 
   await transporter.sendMail({
     from,
     to: sellerRecipients,
     subject: `New HL Wellness Order ${order.orderRef}`,
-    text
+    text: buildSellerOrderText(order)
   });
 
   await transporter.sendMail({
     from,
     to: order.customer.email,
     subject: `Order received ${order.orderRef}`,
-    text: `Hi ${order.customer.name},\n\nThank you. We received your order/enquiry.\n\n${text}\n\nPayment will be completed manually by the selected method.\n\nHL Wellness & Beauty`
+    text: buildCustomerOrderText(order)
   });
 
   return { sent: true };
@@ -184,11 +256,20 @@ function serveStatic(req, res) {
   let requestedPath = decodeURIComponent(url.pathname);
 
   // Clean rep links: /1847, /3729, etc. show the shop while preserving the rep in JS.
-  if (/^\/\d{4}\/?$/.test(requestedPath)) requestedPath = "/index.html";
-  if (requestedPath === "/") requestedPath = "/index.html";
+  if (/^\/\d{4}\/?$/.test(requestedPath)) {
+    requestedPath = "/index.html";
+  }
+
+  if (requestedPath === "/") {
+    requestedPath = "/index.html";
+  }
 
   // Prevent direct browsing of saved orders or secret files.
-  if (requestedPath.startsWith("/orders") || requestedPath === "/.env") {
+  if (
+    requestedPath.startsWith("/orders") ||
+    requestedPath === "/.env" ||
+    requestedPath === "/server.js"
+  ) {
     res.writeHead(403, { "Content-Type": "text/plain; charset=utf-8" });
     res.end("Forbidden");
     return;
@@ -214,7 +295,12 @@ function serveStatic(req, res) {
   }
 
   const ext = path.extname(filePath).toLowerCase();
-  res.writeHead(200, { "Content-Type": mimeTypes[ext] || "application/octet-stream" });
+
+  res.writeHead(200, {
+    "Content-Type": mimeTypes[ext] || "application/octet-stream",
+    "Cache-Control": "public, max-age=3600"
+  });
+
   fs.createReadStream(filePath).pipe(res);
 }
 
@@ -224,25 +310,80 @@ const server = http.createServer(async (req, res) => {
       const body = await readBody(req);
       const order = JSON.parse(body || "{}");
 
-      if (!order.customer?.name || !order.customer?.phone || !order.customer?.email || !Array.isArray(order.items) || order.items.length === 0) {
-        return sendJson(res, 400, { error: "Missing customer details or cart items." });
+      if (
+        !order.customer?.name ||
+        !order.customer?.phone ||
+        !order.customer?.email ||
+        !Array.isArray(order.items) ||
+        order.items.length === 0
+      ) {
+        return sendJson(res, 400, {
+          error: "Missing customer details or cart items."
+        });
       }
 
       const repCode = String(order.rep?.repCode || "");
       const rep = REPS[repCode] || REPS["1847"];
-      order.rep = { repCode: repCode || "1847", ...rep };
+
+      order.rep = {
+        repCode: repCode || "1847",
+        ...rep
+      };
 
       const saved = saveOrder(order);
-      const emailResult = await sendOrderEmails(saved).catch(error => ({ sent: false, reason: error.message }));
 
-      return sendJson(res, 200, { ok: true, orderRef: saved.orderRef, email: emailResult });
+      const emailResult = await sendOrderEmails(saved).catch(error => ({
+        sent: false,
+        reason: error.message
+      }));
+
+      return sendJson(res, 200, {
+        ok: true,
+        orderRef: saved.orderRef,
+        email: emailResult
+      });
     }
 
     if (req.method === "GET" && req.url.startsWith("/api/orders")) {
+      if (!ADMIN_PIN) {
+        return sendJson(res, 500, {
+          error: "ADMIN_PIN is not set in environment variables."
+        });
+      }
+
       const url = new URL(req.url, `http://${req.headers.host}`);
       const pin = url.searchParams.get("pin");
-      if (pin !== ADMIN_PIN) return sendJson(res, 401, { error: "Wrong admin PIN." });
-      return sendJson(res, 200, { orders: readOrders().slice().reverse() });
+
+      if (pin !== ADMIN_PIN) {
+        return sendJson(res, 401, { error: "Wrong admin PIN." });
+      }
+
+      const safeOrders = readOrders()
+        .slice()
+        .reverse()
+        .map(order => ({
+          orderRef: order.orderRef,
+          createdAt: order.createdAt,
+          status: order.status,
+          rep: {
+            repCode: order.rep?.repCode,
+            name: order.rep?.name,
+            code: order.rep?.code
+          },
+          customer: {
+            name: order.customer?.name,
+            phone: order.customer?.phone,
+            email: order.customer?.email,
+            fulfillment: order.customer?.fulfillment,
+            paymentMethod: order.customer?.paymentMethod || order.paymentMethod,
+            address: order.customer?.address,
+            notes: order.customer?.notes
+          },
+          items: order.items,
+          totals: order.totals
+        }));
+
+      return sendJson(res, 200, { orders: safeOrders });
     }
 
     serveStatic(req, res);
