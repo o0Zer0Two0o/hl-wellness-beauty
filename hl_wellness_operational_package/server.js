@@ -31,9 +31,6 @@ const ROOT = __dirname;
 const ORDERS_DIR = path.join(ROOT, "orders");
 const ORDERS_FILE = path.join(ORDERS_DIR, "orders.json");
 
-// IMPORTANT: Set ADMIN_PIN in Render Environment Variables.
-const ADMIN_PIN = process.env.ADMIN_PIN;
-
 const REPS = {
   "1847": {
     name: "Darren",
@@ -255,7 +252,7 @@ function serveStatic(req, res) {
   const url = new URL(req.url, `http://${req.headers.host}`);
   let requestedPath = decodeURIComponent(url.pathname);
 
-  // Clean rep links: /1847, /3729, etc. show the shop while preserving the rep in JS.
+  // Clean rep links: /1847, /3729, etc.
   if (/^\/\d{4}\/?$/.test(requestedPath)) {
     requestedPath = "/index.html";
   }
@@ -298,10 +295,72 @@ function serveStatic(req, res) {
 
   res.writeHead(200, {
     "Content-Type": mimeTypes[ext] || "application/octet-stream",
-    "Cache-Control": "public, max-age=3600"
+    "Cache-Control": "no-cache"
   });
 
   fs.createReadStream(filePath).pipe(res);
+}
+
+function getOrdersForPin(pin) {
+  const masterPin = process.env.MASTER_ADMIN_PIN;
+
+  const repPins = {
+    "1847": process.env.ADMIN_PIN_1847,
+    "3729": process.env.ADMIN_PIN_3729,
+    "6408": process.env.ADMIN_PIN_6408,
+    "9152": process.env.ADMIN_PIN_9152
+  };
+
+  let allowedRepCode = null;
+  let isMaster = false;
+
+  if (masterPin && pin === masterPin) {
+    isMaster = true;
+  } else {
+    allowedRepCode = Object.keys(repPins).find(repCode => {
+      return repPins[repCode] && repPins[repCode] === pin;
+    });
+  }
+
+  if (!isMaster && !allowedRepCode) {
+    return null;
+  }
+
+  let orders = readOrders().slice().reverse();
+
+  if (!isMaster) {
+    orders = orders.filter(order => {
+      return String(order.rep?.repCode) === String(allowedRepCode);
+    });
+  }
+
+  const safeOrders = orders.map(order => ({
+    orderRef: order.orderRef,
+    createdAt: order.createdAt,
+    status: order.status,
+    rep: {
+      repCode: order.rep?.repCode,
+      name: order.rep?.name,
+      code: order.rep?.code
+    },
+    customer: {
+      name: order.customer?.name,
+      phone: order.customer?.phone,
+      email: order.customer?.email,
+      fulfillment: order.customer?.fulfillment,
+      paymentMethod: order.customer?.paymentMethod || order.paymentMethod,
+      address: order.customer?.address,
+      notes: order.customer?.notes
+    },
+    items: order.items,
+    totals: order.totals
+  }));
+
+  return {
+    mode: isMaster ? "master" : "rep",
+    repCode: isMaster ? "ALL" : allowedRepCode,
+    orders: safeOrders
+  };
 }
 
 const server = http.createServer(async (req, res) => {
@@ -345,178 +404,18 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (req.method === "GET" && req.url.startsWith("/api/orders")) {
-
-  const url = new URL(req.url, `http://${req.headers.host}`);
-  const pin = url.searchParams.get("pin");
-
-  const masterPin = process.env.MASTER_ADMIN_PIN;
-
-  const repPins = {
-    "1847": process.env.ADMIN_PIN_1847,
-    "3729": process.env.ADMIN_PIN_3729,
-    "6408": process.env.ADMIN_PIN_6408,
-    "9152": process.env.ADMIN_PIN_9152
-  };
-
-  let allowedRepCode = null;
-  let isMaster = false;
-
-  // Master access
-  if (pin === masterPin) {
-    isMaster = true;
-  } else {
-
-    // Rep access
-    allowedRepCode = Object.keys(repPins).find(repCode => {
-      return repPins[repCode] === pin;
-    });
-
-  }
-
-  if (!isMaster && !allowedRepCode) {
-    return sendJson(res, 401, {
-      error: "Wrong admin PIN."
-    });
-  }
-
-  let orders = readOrders().slice().reverse();
-
-  // Filter orders for reps
-  if (!isMaster) {
-    orders = orders.filter(order => {
-      return String(order.rep?.repCode) === String(allowedRepCode);
-    });
-  }
-
-  const safeOrders = orders.map(order => ({
-    orderRef: order.orderRef,
-    createdAt: order.createdAt,
-    status: order.status,
-
-    rep: {
-      repCode: order.rep?.repCode,
-      name: order.rep?.name,
-      code: order.rep?.code
-    },
-
-    customer: {
-      name: order.customer?.name,
-      phone: order.customer?.phone,
-      email: order.customer?.email,
-      fulfillment: order.customer?.fulfillment,
-      paymentMethod: order.customer?.paymentMethod || order.paymentMethod,
-      address: order.customer?.address,
-      notes: order.customer?.notes
-    },
-
-    items: order.items,
-    totals: order.totals
-  }));
-
-  return sendJson(res, 200, {
-    mode: isMaster ? "master" : "rep",
-    repCode: isMaster ? "ALL" : allowedRepCode,
-    orders: safeOrders
-  });
-}
-  const url = new URL(req.url, `http://${req.headers.host}`);
-  const pin = url.searchParams.get("pin");
-
-  const masterPin = process.env.MASTER_ADMIN_PIN;
-
-  const repPins = {
-    "1847": process.env.ADMIN_PIN_1847,
-    "3729": process.env.ADMIN_PIN_3729,
-    "6408": process.env.ADMIN_PIN_6408,
-    "9152": process.env.ADMIN_PIN_9152
-  };
-
-  let allowedRepCode = null;
-  let isMaster = false;
-
-  if (masterPin && pin === masterPin) {
-    isMaster = true;
-  } else {
-    allowedRepCode = Object.keys(repPins).find(repCode => repPins[repCode] && repPins[repCode] === pin);
-  }
-
-  if (!isMaster && !allowedRepCode) {
-    return sendJson(res, 401, { error: "Wrong admin PIN." });
-  }
-
-  let orders = readOrders().slice().reverse();
-
-  if (!isMaster) {
-    orders = orders.filter(order => String(order.rep?.repCode) === String(allowedRepCode));
-  }
-
-  const safeOrders = orders.map(order => ({
-    orderRef: order.orderRef,
-    createdAt: order.createdAt,
-    status: order.status,
-    rep: {
-      repCode: order.rep?.repCode,
-      name: order.rep?.name,
-      code: order.rep?.code
-    },
-    customer: {
-      name: order.customer?.name,
-      phone: order.customer?.phone,
-      email: order.customer?.email,
-      fulfillment: order.customer?.fulfillment,
-      paymentMethod: order.customer?.paymentMethod || order.paymentMethod,
-      address: order.customer?.address,
-      notes: order.customer?.notes
-    },
-    items: order.items,
-    totals: order.totals
-  }));
-
-  return sendJson(res, 200, {
-    mode: isMaster ? "master" : "rep",
-    repCode: isMaster ? "ALL" : allowedRepCode,
-    orders: safeOrders
-  });
-}
-      if (!ADMIN_PIN) {
-        return sendJson(res, 500, {
-          error: "ADMIN_PIN is not set in environment variables."
-        });
-      }
-
       const url = new URL(req.url, `http://${req.headers.host}`);
       const pin = url.searchParams.get("pin");
 
-      if (pin !== ADMIN_PIN) {
-        return sendJson(res, 401, { error: "Wrong admin PIN." });
+      const result = getOrdersForPin(pin);
+
+      if (!result) {
+        return sendJson(res, 401, {
+          error: "Wrong admin PIN."
+        });
       }
 
-      const safeOrders = readOrders()
-        .slice()
-        .reverse()
-        .map(order => ({
-          orderRef: order.orderRef,
-          createdAt: order.createdAt,
-          status: order.status,
-          rep: {
-            repCode: order.rep?.repCode,
-            name: order.rep?.name,
-            code: order.rep?.code
-          },
-          customer: {
-            name: order.customer?.name,
-            phone: order.customer?.phone,
-            email: order.customer?.email,
-            fulfillment: order.customer?.fulfillment,
-            paymentMethod: order.customer?.paymentMethod || order.paymentMethod,
-            address: order.customer?.address,
-            notes: order.customer?.notes
-          },
-          items: order.items,
-          totals: order.totals
-        }));
-
-      return sendJson(res, 200, { orders: safeOrders });
+      return sendJson(res, 200, result);
     }
 
     serveStatic(req, res);
@@ -529,5 +428,5 @@ const server = http.createServer(async (req, res) => {
 server.listen(PORT, () => {
   console.log(`HL Wellness site running at http://localhost:${PORT}`);
   console.log("Orders save to orders/orders.json");
-  console.log("Admin orders API: /api/orders?pin=YOUR_ADMIN_PIN");
+  console.log("Admin orders API: /api/orders?pin=YOUR_PIN");
 });
