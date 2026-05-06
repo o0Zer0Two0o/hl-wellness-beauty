@@ -43,25 +43,28 @@ const REPS = {
     name: "Darren",
     code: "DC",
     herbalifeId: process.env.REP_1847_HERBALIFE_ID || "DARREN_HERBALIFE_ID_HERE",
-    email: process.env.REP_1847_EMAIL || "darrencaruana47@gmail.com"
+    email: "darrencaruana47@gmail.com"
   },
+
   "3729": {
     name: "Yanice",
     code: "YA",
     herbalifeId: process.env.REP_3729_HERBALIFE_ID || "YANICE_HERBALIFE_ID_HERE",
-    email: process.env.REP_3729_EMAIL || "yanice@email.com"
+    email: "dummy@gmail.com"
   },
+
   "6408": {
     name: "Joshua",
     code: "JO",
     herbalifeId: process.env.REP_6408_HERBALIFE_ID || "JOSHUA_HERBALIFE_ID_HERE",
-    email: process.env.REP_6408_EMAIL || "joshua@email.com"
+    email: "dummy@gmail.com"
   },
+
   "9152": {
-    name: "Sister / Upline",
+    name: "Valerie",
     code: "UP",
-    herbalifeId: process.env.REP_9152_HERBALIFE_ID || "SISTER_HERBALIFE_ID_HERE",
-    email: process.env.REP_9152_EMAIL || "sister@email.com"
+    herbalifeId: process.env.REP_9152_HERBALIFE_ID || "VALERIE_HERBALIFE_ID_HERE",
+    email: "dummy@gmail.com"
   }
 };
 
