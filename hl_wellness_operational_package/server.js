@@ -345,6 +345,65 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (req.method === "GET" && req.url.startsWith("/api/orders")) {
+  const url = new URL(req.url, `http://${req.headers.host}`);
+  const pin = url.searchParams.get("pin");
+
+  const masterPin = process.env.MASTER_ADMIN_PIN;
+
+  const repPins = {
+    "1847": process.env.ADMIN_PIN_1847,
+    "3729": process.env.ADMIN_PIN_3729,
+    "6408": process.env.ADMIN_PIN_6408,
+    "9152": process.env.ADMIN_PIN_9152
+  };
+
+  let allowedRepCode = null;
+  let isMaster = false;
+
+  if (masterPin && pin === masterPin) {
+    isMaster = true;
+  } else {
+    allowedRepCode = Object.keys(repPins).find(repCode => repPins[repCode] && repPins[repCode] === pin);
+  }
+
+  if (!isMaster && !allowedRepCode) {
+    return sendJson(res, 401, { error: "Wrong admin PIN." });
+  }
+
+  let orders = readOrders().slice().reverse();
+
+  if (!isMaster) {
+    orders = orders.filter(order => String(order.rep?.repCode) === String(allowedRepCode));
+  }
+
+  const safeOrders = orders.map(order => ({
+    orderRef: order.orderRef,
+    createdAt: order.createdAt,
+    status: order.status,
+    rep: {
+      repCode: order.rep?.repCode,
+      name: order.rep?.name,
+      code: order.rep?.code
+    },
+    customer: {
+      name: order.customer?.name,
+      phone: order.customer?.phone,
+      email: order.customer?.email,
+      fulfillment: order.customer?.fulfillment,
+      paymentMethod: order.customer?.paymentMethod || order.paymentMethod,
+      address: order.customer?.address,
+      notes: order.customer?.notes
+    },
+    items: order.items,
+    totals: order.totals
+  }));
+
+  return sendJson(res, 200, {
+    mode: isMaster ? "master" : "rep",
+    repCode: isMaster ? "ALL" : allowedRepCode,
+    orders: safeOrders
+  });
+}
       if (!ADMIN_PIN) {
         return sendJson(res, 500, {
           error: "ADMIN_PIN is not set in environment variables."
