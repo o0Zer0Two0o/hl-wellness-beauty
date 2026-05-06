@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HL Wellness & Beauty | Product Shop</title>
+  <style>
+     :root {
+      --bg: #fff8f3;
+      --card: #ffffff;
+      --text: #2b1b18;
+      --muted: #7a625c;
+      --green: #7b2f3a;
+      --green-dark: #5d202a;
+      --sage: #f3ded7;
+      --cream: #fff3ed;
+      --warning: #9c5360;
+      --border: #ead2cb;
+      --shadow: 0 20px 50px rgba(84, 37, 43, 0.12);
+      --radius: 22px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: Inter, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; border: 0; }
+
+    .top-banner {
+      background: var(--green-dark);
+      color: white;
+      text-align: center;
+      padding: 10px 16px;
+      font-size: 14px;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: rgba(255, 248, 243, 0.92);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav {
+      max-width: 1180px;
+      margin: auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      gap: 16px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 900;
+      font-size: 22px;
+    }
+
+    .logo-mark {
+      width: 40px;
+      height: 40px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--green), #d58c98);
+      display: grid;
+      place-items: center;
+      color: white;
+      box-shadow: var(--shadow);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 22px;
+      color: var(--muted);
+      font-weight: 650;
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .cart-btn, .primary-btn, .secondary-btn {
+      border-radius: 999px;
+      padding: 12px 18px;
+      font-weight: 800;
+      transition: transform 0.15s ease, background 0.15s ease;
+    }
+
+    .cart-btn, .primary-btn {
+      background: var(--green);
+      color: white;
+    }
+
+    .secondary-btn {
+      background: var(--sage);
+      color: var(--green-dark);
+    }
+
+    .cart-btn:hover, .primary-btn:hover, .secondary-btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .cart-count {
+      background: white;
+      color: var(--green-dark);
+      border-radius: 999px;
+      padding: 2px 7px;
+      margin-left: 6px;
+      font-size: 12px;
+      display: inline-block;
+      transition: transform 0.18s ease;
+    }
+
+    .cart-count.bump {
+      transform: scale(1.35);
+    }
+
+    .fly-to-cart {
+      position: fixed;
+      z-index: 9999;
+      width: 54px;
+      height: 54px;
+      border-radius: 18px;
+      background-size: cover;
+      background-position: center;
+      pointer-events: none;
+      box-shadow: 0 14px 34px rgba(84, 37, 43, 0.25);
+      transition: transform 0.65s cubic-bezier(.2,.75,.25,1), opacity 0.65s ease;
+    }
+
+    .hero {
+      max-width: 1180px;
+      margin: auto;
+      padding: 70px 20px 46px;
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 44px;
+      align-items: center;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      background: var(--sage);
+      color: var(--green-dark);
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-weight: 850;
+      margin-bottom: 18px;
+    }
+
+    .hero h1 {
+      font-size: clamp(38px, 7vw, 74px);
+      line-height: 0.98;
+      letter-spacing: -2.5px;
+      margin-bottom: 20px;
+    }
+
+    .hero p {
+      color: var(--muted);
+      max-width: 620px;
+      font-size: 18px;
+      margin-bottom: 28px;
+    }
+
+    .hero-card {
+      background: radial-gradient(circle at top left, #ffffff, #fff0ea);
+      border-radius: 34px;
+      padding: 26px;
+      box-shadow: var(--shadow);
+      border: 1px solid white;
+    }
+
+    .hero-image {
+      min-height: 390px;
+      border-radius: 28px;
+      background:
+        linear-gradient(140deg, rgba(123, 47, 58, 0.25), rgba(255,255,255,0.75)),
+        url('https://images.unsplash.com/photo-1490645935967-10de6ba17061?auto=format&fit=crop&w=900&q=80');
+      background-size: cover;
+      background-position: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .floating-note {
+      position: absolute;
+      right: 18px;
+      bottom: 18px;
+      background: rgba(255,255,255,0.9);
+      padding: 16px;
+      border-radius: 18px;
+      width: 210px;
+      box-shadow: var(--shadow);
+      font-weight: 800;
+    }
+
+    .section {
+      max-width: 1180px;
+      margin: auto;
+      padding: 48px 20px;
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      gap: 18px;
+      margin-bottom: 26px;
+    }
+
+    .section h2 {
+      font-size: clamp(30px, 4vw, 46px);
+      letter-spacing: -1px;
+      line-height: 1.05;
+    }
+
+    .filters {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .search, .select {
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: white;
+      padding: 12px 15px;
+      outline: none;
+      color: var(--text);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+    .product {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: 0 12px 28px rgba(38, 61, 48, 0.08);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .product-img {
+      height: 220px;
+      background-size: cover;
+      background-position: center;
+    }
+
+    .product-body {
+      padding: 20px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .tag {
+      width: fit-content;
+      background: var(--cream);
+      color: var(--warning);
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 900;
+      margin-bottom: 12px;
+    }
+
+    .product h3 {
+      font-size: 21px;
+      margin-bottom: 8px;
+    }
+
+    .product p {
+      color: var(--muted);
+      font-size: 14px;
+      margin-bottom: 16px;
+    }
+
+    .product-foot {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: auto;
+      gap: 12px;
+    }
+
+    .price {
+      font-size: 22px;
+      font-weight: 950;
+      color: var(--green-dark);
+    }
+
+    .about-box {
+      background: var(--green-dark);
+      color: white;
+      border-radius: 30px;
+      padding: 34px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+    .about-box p { color: rgba(255,255,255,0.78); }
+    .about-box h3 { margin-bottom: 8px; }
+
+    .drawer-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.36);
+      z-index: 90;
+      display: none;
+    }
+
+    .drawer {
+      position: fixed;
+      top: 0;
+      right: -460px;
+      height: 100vh;
+      width: min(460px, 100%);
+      background: white;
+      z-index: 100;
+      box-shadow: -20px 0 60px rgba(0,0,0,0.18);
+      padding: 22px;
+      transition: right 0.25s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      overflow: hidden;
+    }
+
+    .drawer.open { right: 0; }
+    .drawer-backdrop.open { display: block; }
+
+    .drawer-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+
+    .close-btn {
+      background: var(--sage);
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      font-size: 24px;
+    }
+
+    .cart-items {
+      max-height: 30vh;
+      overflow: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding-right: 6px;
+      margin-bottom: 10px;
+    }
+
+    .cart-item {
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 14px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 14px;
+      align-items: start;
+    }
+
+    .cart-item strong { overflow-wrap: anywhere; }
+
+    .item-price { white-space: nowrap; text-align: right; }
+
+    .qty-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .qty-controls button {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: var(--sage);
+      font-weight: 900;
+    }
+
+    .cart-summary {
+      border-top: 1px solid var(--border);
+      padding-top: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 11px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .field {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 13px 14px;
+      margin-top: 0;
+      outline: none;
+      min-height: 50px;
+      background: #fffdfb;
+    }
+
+    textarea.field { resize: vertical; min-height: 78px; }
+
+    .total-line {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 14px;
+      font-size: 22px;
+      font-weight: 950;
+      margin: 6px 0 2px;
+    }
+
+    .total-line span:last-child {
+      text-align: right;
+      font-size: 20px;
+      line-height: 1.25;
+    }
+
+    .quote-note {
+      margin-top: -2px;
+      color: var(--muted);
+      font-size: 12px;
+      display: none;
+    }
+
+    .quote-badge {
+      display: inline-block;
+      background: var(--cream);
+      border: 1px solid var(--border);
+      color: var(--green-dark);
+      border-radius: 999px;
+      padding: 4px 9px;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .notice {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 10px;
+    }
+
+    footer {
+      padding: 38px 20px;
+      text-align: center;
+      color: var(--muted);
+      border-top: 1px solid var(--border);
+    }
+
+    @media (max-width: 860px) {
+      .hero { grid-template-columns: 1fr; padding-top: 42px; }
+      .grid { grid-template-columns: 1fr 1fr; }
+      .about-box { grid-template-columns: 1fr; }
+      .nav-links { display: none; }
+    }
+
+    @media (max-width: 560px) {
+      .grid { grid-template-columns: 1fr; }
+      .section-head { align-items: start; flex-direction: column; }
+      .hero h1 { letter-spacing: -1.5px; }
+      .hero-image { min-height: 300px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="top-banner">HL Wellness & Beauty · Product shop with manual order support</div>
+
+  <header>
+    <nav class="nav">
+      <a href="#home" class="logo">
+        <span class="logo-mark">✦</span>
+        <span>HL Wellness & Beauty</span>
+      </a>
+      <div class="nav-links">
+        <a href="#products">Products</a>
+        <a href="#plans">Plans</a>
+        <a href="#about">Why us</a>
+        <a href="#contact">Contact</a>
+      </div>
+      <div class="nav-actions">
+        <button class="cart-btn" onclick="openCart()">Cart <span class="cart-count" id="cartCount">0</span></button>
+      </div>
+    </nav>
+  </header>
+
+  <main id="home">
+    <section class="hero">
+      <div>
+        <span class="eyebrow">Wellness · Nutrition · Beauty</span>
+        <h1>Shop wellness products with personal support.</h1>
+        <p>Browse nutrition, wellness, fitness support, and beauty products. Add items to your cart, then send a manual order enquiry to your assigned team member.</p>
+        <div style="display:flex; gap:12px; flex-wrap:wrap;">
+          <a class="primary-btn" href="#products">Shop Products</a>
+          <button class="secondary-btn" onclick="openCart()">View Cart</button>
+        </div>
+      </div>
+      <div class="hero-card">
+        <div class="hero-image">
+          <div class="floating-note">Personal team support. Simple manual orders.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="products">
+      <div class="section-head">
+        <div>
+          <span class="eyebrow">Shop</span>
+          <h2>Product shop</h2>
+        </div>
+        <div class="filters">
+          <input class="search" id="searchInput" placeholder="Search products..." oninput="renderProducts()" />
+          <select class="select" id="categoryFilter" onchange="renderProducts()">
+            <option value="all">All categories</option>
+            <option value="Nutrition">Nutrition</option>
+            <option value="Fitness">Fitness</option>
+            <option value="Beauty">Beauty</option>
+            <option value="Bundle">Bundle</option>
+            <option value="Plans">Plans / Quote Required</option>
+          </select>
+        </div>
+      </div>
+      <div class="grid" id="productGrid"></div>
+    </section>
+
+    <section class="section" id="plans">
+      <div class="section-head">
+        <div>
+          <span class="eyebrow">Custom</span>
+          <h2>Fitness & meal plans</h2>
+          <p style="color:var(--muted); max-width:700px; margin-top:10px;">These are quote-required because they depend on the client’s goals, schedule, and support level.</p>
+        </div>
+      </div>
+      <div class="grid" id="planGrid"></div>
+    </section>
+
+    <section class="section" id="about">
+      <div class="about-box">
+        <div>
+          <h3>Manual-first</h3>
+          <p>Designed for easy manual order handling before adding full online payments.</p>
+        </div>
+        <div>
+          <h3>Tracked enquiries</h3>
+          <p>The referral code is stored in the order payload so you know which team member brought the client.</p>
+        </div>
+        <div>
+          <h3>Easy to expand</h3>
+          <p>Simple frontend structure with separate product pages, cart, and backend-ready order data.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="contact">
+      <div class="section-head">
+        <div>
+          <span class="eyebrow">Contact</span>
+          <h2>Need help choosing?</h2>
+          <p style="color:var(--muted); max-width:650px; margin-top:10px;">Message us before buying if you need help choosing a product, pack, or routine.</p>
+        </div>
+        <button class="primary-btn" onclick="openCart()">Start an order</button>
+      </div>
+    </section>
+  </main>
+
+  <div class="drawer-backdrop" id="drawerBackdrop" onclick="closeCart()"></div>
+  <aside class="drawer" id="cartDrawer">
+    <div class="drawer-head">
+      <h2>Your cart</h2>
+      <button class="close-btn" onclick="closeCart()">×</button>
+    </div>
+
+    <div class="cart-items" id="cartItems"></div>
+
+    <div class="cart-summary">
+      <input class="field" id="customerName" placeholder="Full name" />
+      <input class="field" id="customerPhone" placeholder="Phone number" />
+      <input class="field" id="customerEmail" placeholder="Email address" />
+      <select class="field" id="fulfillmentMethod">
+        <option value="Local Pickup">Local Pickup</option>
+        <option value="Local Delivery">Local Delivery</option>
+        <option value="Shipping">Shipping</option>
+      </select>
+      <select class="field" id="paymentMethod">
+        <option value="Cash on pickup">Cash on pickup</option>
+        <option value="Card on pickup">Card on pickup</option>
+        <option value="Cash on delivery">Cash on delivery</option>
+        <option value="Manual bank transfer">Manual bank transfer</option>
+      </select>
+      <textarea class="field" id="customerAddress" placeholder="Delivery/shipping address if needed"></textarea>
+      <textarea class="field" id="customerNotes" placeholder="Order notes optional"></textarea>
+
+      <div style="margin-top:14px; padding:14px; border:1px solid var(--border); border-radius:18px; background:var(--cream);">
+        <strong>Payment</strong>
+        <p class="notice" style="margin-top:4px;">Payment will be completed manually by cash, card on pickup, delivery, or bank transfer.</p>
+      </div>
+
+      <div class="total-line">
+        <span>Total</span>
+        <span id="cartTotal">€0.00</span>
+      </div>
+      <p class="quote-note" id="quoteNote">Custom plans/quote-required items will be confirmed separately.</p>
+      <button class="primary-btn" style="width:100%;" onclick="startCheckout()">Place Order</button>
+      <p class="notice">After the order is placed, the seller receives the order email and the client receives a confirmation email. Payment is completed manually.</p>
+    </div>
+  </aside>
+
+  <footer>
+    <p>© <span id="year"></span> HL Wellness & Beauty. Product information is general and not medical advice.</p>
+  </footer>
+
+  <script>
+    // EDIT THESE WHEN CONNECTING A REAL BACKEND
+    const SELLER_EMAIL = "darrencaruana47@gmail.com";
+
+    // This should point to your backend later, for example:
+    // https://yourdomain.com/api/create-checkout-session
+    const CHECKOUT_ENDPOINT = "/api/manual-order";
+
+    const reps = {
+      "1847": { name: "Darren", code: "DC", herbalifeId: "DARREN_HERBALIFE_ID_HERE", email: "darren@email.com" },
+      "3729": { name: "Yanice", code: "YA", herbalifeId: "YANICE_HERBALIFE_ID_HERE", email: "yanice@email.com" },
+      "6408": { name: "Joshua", code: "JO", herbalifeId: "JOSHUA_HERBALIFE_ID_HERE", email: "joshua@email.com" },
+      "9152": { name: "Sister / Upline", code: "UP", herbalifeId: "SISTER_HERBALIFE_ID_HERE", email: "sister@email.com" }
+    };
+
+    function getRepCode() {
+      const params = new URLSearchParams(window.location.search);
+      const queryRep = params.get("rep");
+      if (queryRep && reps[queryRep]) return queryRep;
+      const pathParts = window.location.pathname.split("/").filter(Boolean);
+      const maybeCode = pathParts.find(part => reps[part]);
+      if (maybeCode) return maybeCode;
+      return localStorage.getItem("hlRepCode") || "1847";
+    }
+
+    const repCode = getRepCode();
+    localStorage.setItem("hlRepCode", repCode);
+    const assignedRep = reps[repCode];
+
+    const products = [
+      {
+        id: 1,
+        name: "Formula 1 Shake",
+        category: "Nutrition",
+        price: 45.00,
+        quoteRequired: false,
+        tag: "Popular",
+        description: "Meal-support product placeholder. Replace with the exact product details and price.",
+        detailsUrl: "products/formula-1-shake.html",
+        image: "https://images.unsplash.com/photo-1585238342028-4bbc04209f9a?auto=format&fit=crop&w=900&q=80"
+      },
+      {
+        id: 2,
+        name: "Protein Drink Mix",
+        category: "Fitness",
+        price: 38.00,
+        quoteRequired: false,
+        tag: "Fitness",
+        description: "Protein support placeholder. Replace with exact product details, flavours, and price.",
+        detailsUrl: "products/protein-drink-mix.html",
+        image: "https://images.unsplash.com/photo-1593095948071-474c5cc2989d?auto=format&fit=crop&w=900&q=80"
+      },
+      {
+        id: 3,
+        name: "Herbal Tea",
+        category: "Nutrition",
+        price: 32.00,
+        quoteRequired: false,
+        tag: "Routine",
+        description: "Tea product placeholder. Replace with exact product name, flavours, and usage notes.",
+        detailsUrl: "products/herbal-tea.html",
+        image: "https://images.unsplash.com/photo-1597318181409-cf64d0b5d8a2?auto=format&fit=crop&w=900&q=80"
+      },
+      {
+        id: 4,
+        name: "Aloe Drink",
+        category: "Nutrition",
+        price: 35.00,
+        quoteRequired: false,
+        tag: "Wellness",
+        description: "Aloe product placeholder. Replace with exact product details and flavours.",
+        detailsUrl: "products/aloe-drink.html",
+        image: "https://images.unsplash.com/photo-1615485290382-441e4d049cb5?auto=format&fit=crop&w=900&q=80"
+      },
+      {
+        id: 5,
+        name: "Beauty Products",
+        category: "Beauty",
+        price: 55.00,
+        quoteRequired: false,
+        tag: "Beauty",
+        description: "Beauty and self-care range placeholder. Replace with the exact product range and routine steps.",
+        detailsUrl: "products/beauty-products.html",
+        image: "https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?auto=format&fit=crop&w=900&q=80"
+      },
+      {
+        id: 6,
+        name: "Wellness Bundle",
+        category: "Bundle",
+        price: 89.00,
+        quoteRequired: false,
+        tag: "Starter",
+        description: "Custom starter bundle placeholder for clients who want a simple starting point.",
+        detailsUrl: "products/wellness-bundle.html",
+        image: "https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=900&q=80"
+      },
+      {
+        id: 101,
+        name: "Gym Workout Plan",
+        category: "Plans",
+        price: 0,
+        quoteRequired: true,
+        tag: "Custom Plan",
+        description: "Custom gym/exercise plan. Price is confirmed after goal review.",
+        detailsUrl: "products/gym-workout-plan.html",
+        image: "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=900&q=80"
+      },
+      {
+        id: 102,
+        name: "Meal Plan",
+        category: "Plans",
+        price: 0,
+        quoteRequired: true,
+        tag: "Custom Plan",
+        description: "Meal plan support. Price is confirmed after discussing preferences and goals.",
+        detailsUrl: "products/meal-plan.html",
+        image: "https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=900&q=80"
+      },
+      {
+        id: 103,
+        name: "Coaching Pack",
+        category: "Plans",
+        price: 0,
+        quoteRequired: true,
+        tag: "Quote Required",
+        description: "Personal support package for fitness, nutrition, and habit tracking.",
+        detailsUrl: "products/coaching-pack.html",
+        image: "https://images.unsplash.com/photo-1571019613914-85f342c6a11e?auto=format&fit=crop&w=900&q=80"
+      }
+    ];
+
+    let cart = JSON.parse(localStorage.getItem("hlWellnessCart")) || [];
+
+    function saveCart() {
+      localStorage.setItem("hlWellnessCart", JSON.stringify(cart));
+      updateCartUI();
+    }
+
+    function withRep(url) {
+      const joiner = url.includes("?") ? "&" : "?";
+      return `${url}${joiner}rep=${encodeURIComponent(repCode)}`;
+    }
+
+    function renderProducts() {
+      const grid = document.getElementById("productGrid");
+      const search = document.getElementById("searchInput").value.toLowerCase();
+      const category = document.getElementById("categoryFilter").value;
+
+      const filtered = products.filter(product => {
+        const matchesSearch = product.name.toLowerCase().includes(search) || product.description.toLowerCase().includes(search);
+        const matchesCategory = category === "all" || product.category === category;
+        return matchesSearch && matchesCategory && product.category !== "Plans";
+      });
+
+      grid.innerHTML = filtered.map(product => `
+        <article class="product">
+          <div class="product-img" style="background-image:url('${product.image}')"></div>
+          <div class="product-body">
+            <span class="tag">${product.tag}</span>
+            <h3>${product.name}</h3>
+            <p>${product.description}</p>
+            <div class="product-foot">
+              <span class="price">${product.quoteRequired ? "Quote Required" : `€${product.price.toFixed(2)}`}</span>
+              <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;">
+                <a class="secondary-btn" href="${withRep(product.detailsUrl)}">Details</a>
+                <button class="primary-btn" onclick="addToCart(${product.id}, event)">Add</button>
+              </div>
+            </div>
+          </div>
+        </article>
+      `).join("");
+    }
+
+    function renderPlans() {
+      const grid = document.getElementById("planGrid");
+      if (!grid) return;
+      const plans = products.filter(product => product.category === "Plans");
+      grid.innerHTML = plans.map(product => `
+        <article class="product">
+          <div class="product-img" style="background-image:url('${product.image}')"></div>
+          <div class="product-body">
+            <span class="tag">${product.tag}</span>
+            <h3>${product.name}</h3>
+            <p>${product.description}</p>
+            <div class="product-foot">
+              <span class="price">Quote Required</span>
+              <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;">
+                <a class="secondary-btn" href="${withRep(product.detailsUrl)}">Details</a>
+                <button class="primary-btn" onclick="addToCart(${product.id}, event)">Add</button>
+              </div>
+            </div>
+          </div>
+        </article>
+      `).join("");
+    }
+
+    function addToCart(id, event) {
+      const product = products.find(item => item.id === id);
+      const existing = cart.find(item => item.id === id);
+
+      if (existing) {
+        existing.qty += 1;
+      } else {
+        cart.push({ ...product, qty: 1 });
+      }
+
+      animateToCart(product, event);
+      saveCart();
+    }
+
+    function animateToCart(product, event) {
+      const cartButton = document.querySelector(".cart-btn");
+      const cartCount = document.getElementById("cartCount");
+      const buttonRect = event.currentTarget.getBoundingClientRect();
+      const cartRect = cartButton.getBoundingClientRect();
+      const flyer = document.createElement("div");
+      flyer.className = "fly-to-cart";
+      flyer.style.backgroundImage = `url('${product.image}')`;
+      flyer.style.left = `${buttonRect.left + buttonRect.width / 2 - 27}px`;
+      flyer.style.top = `${buttonRect.top + buttonRect.height / 2 - 27}px`;
+      document.body.appendChild(flyer);
+      requestAnimationFrame(() => {
+        const x = cartRect.left + cartRect.width / 2 - (buttonRect.left + buttonRect.width / 2);
+        const y = cartRect.top + cartRect.height / 2 - (buttonRect.top + buttonRect.height / 2);
+        flyer.style.transform = `translate(${x}px, ${y}px) scale(0.25)`;
+        flyer.style.opacity = "0.15";
+      });
+      setTimeout(() => {
+        flyer.remove();
+        cartCount.classList.add("bump");
+        setTimeout(() => cartCount.classList.remove("bump"), 180);
+      }, 660);
+    }
+
+    function removeFromCart(id) {
+      cart = cart.filter(item => item.id !== id);
+      saveCart();
+    }
+
+    function changeQty(id, amount) {
+      const item = cart.find(product => product.id === id);
+      if (!item) return;
+      item.qty += amount;
+      if (item.qty <= 0) removeFromCart(id);
+      saveCart();
+    }
+
+    function updateCartUI() {
+      const cartItems = document.getElementById("cartItems");
+      const cartCount = document.getElementById("cartCount");
+      const cartTotal = document.getElementById("cartTotal");
+      const totalItems = cart.reduce((sum, item) => sum + item.qty, 0);
+      const totalPrice = cart.reduce((sum, item) => sum + (item.quoteRequired ? 0 : item.price * item.qty), 0);
+      const hasQuoteItems = cart.some(item => item.quoteRequired);
+
+      cartCount.textContent = totalItems;
+      cartTotal.textContent = hasQuoteItems ? `€${totalPrice.toFixed(2)} + quote items` : `€${totalPrice.toFixed(2)}`;
+      const quoteNote = document.getElementById("quoteNote");
+      if (quoteNote) quoteNote.style.display = hasQuoteItems ? "block" : "none";
+
+      if (cart.length === 0) {
+        cartItems.innerHTML = `<p style="color:var(--muted);">Your cart is empty.</p>`;
+        return;
+      }
+
+      cartItems.innerHTML = cart.map(item => `
+        <div class="cart-item">
+          <div>
+            <strong>${item.name}</strong>
+            <div style="color:var(--muted); font-size:14px;">${item.quoteRequired ? "Custom plan — price confirmed after consultation" : `€${item.price.toFixed(2)} each`}</div>
+            <div class="qty-controls">
+              <button onclick="changeQty(${item.id}, -1)">−</button>
+              <strong>${item.qty}</strong>
+              <button onclick="changeQty(${item.id}, 1)">+</button>
+            </div>
+          </div>
+          <div class="item-price">
+            <strong>${item.quoteRequired ? `<span class="quote-badge">Quote Required</span>` : `€${(item.price * item.qty).toFixed(2)}`}</strong><br>
+            <button style="margin-top:10px; color:#7b2f3a; background:transparent; font-weight:800;" onclick="removeFromCart(${item.id})">Remove</button>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function openCart() {
+      document.getElementById("cartDrawer").classList.add("open");
+      document.getElementById("drawerBackdrop").classList.add("open");
+    }
+
+    function closeCart() {
+      document.getElementById("cartDrawer").classList.remove("open");
+      document.getElementById("drawerBackdrop").classList.remove("open");
+    }
+
+    async function startCheckout() {
+      if (cart.length === 0) {
+        alert("Your cart is empty.");
+        return;
+      }
+      const name = document.getElementById("customerName").value.trim();
+      const phone = document.getElementById("customerPhone").value.trim();
+      const email = document.getElementById("customerEmail").value.trim();
+      const fulfillment = document.getElementById("fulfillmentMethod").value;
+      const paymentMethod = document.getElementById("paymentMethod").value;
+      const address = document.getElementById("customerAddress").value.trim();
+      const notes = document.getElementById("customerNotes").value.trim();
+      if (!name || !phone || !email) {
+        alert("Please enter your name, phone number, and email before placing the order.");
+        return;
+      }
+      const order = {
+        rep: {
+          repCode,
+          name: assignedRep.name,
+          code: assignedRep.code,
+          herbalifeId: assignedRep.herbalifeId,
+          email: assignedRep.email
+        },
+        customer: { name, phone, email, fulfillment, paymentMethod, address, notes },
+        paymentMethod,
+        totals: {
+          fixedTotal: cart.reduce((sum, item) => sum + (item.quoteRequired ? 0 : item.price * item.qty), 0),
+          hasQuoteRequiredItems: cart.some(item => item.quoteRequired)
+        },
+        items: cart.map(item => ({
+          id: item.id,
+          name: item.name,
+          price: item.price,
+          quantity: item.qty,
+          quoteRequired: !!item.quoteRequired
+        }))
+      };
+      try {
+        const response = await fetch(CHECKOUT_ENDPOINT, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(order)
+        });
+        const data = await response.json();
+        if (!response.ok) {
+          alert(data.error || "Order failed.");
+          return;
+        }
+        localStorage.removeItem("hlWellnessCart");
+        cart = [];
+        saveCart();
+        window.location.href = `success.html?order=${encodeURIComponent(data.orderRef || "")}`;
+      } catch (error) {
+        console.error(error);
+        alert("Could not connect to the order server. Make sure the backend is live.");
+      }
+    }
+
+    document.getElementById("year").textContent = new Date().getFullYear();
+    renderProducts();
+    renderPlans();
+    updateCartUI();
+
+    if (new URLSearchParams(window.location.search).get("openCart") === "1") {
+      openCart();
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+OPERATION CHECKLIST
+===================
+
+Before sharing the website publicly:
+
+[ ] Replace all placeholder product descriptions
+[ ] Replace all placeholder product prices
+[ ] Replace all placeholder product images
+[ ] Add proper product/bundle photos
+[ ] Confirm Herbalife distributor wording/compliance
+[ ] Set all rep emails
+[ ] Set all Herbalife IDs
+[ ] Set ADMIN_PIN
+[ ] Set SMTP settings if you want email notifications
+[ ] Test /1847, /3729, /6408, /9152
+[ ] Place one test order per rep
+[ ] Check admin.html with your PIN
+[ ] Confirm orders save correctly
+[ ] Confirm emails arrive, if SMTP is enabled
+[ ] Buy/connect domain
+[ ] Add privacy policy and terms/refund wording before paid traffic

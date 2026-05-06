@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Orders Admin | HL Wellness & Beauty</title>
+<style>
+:root{--bg:#fff8f3;--card:#fff;--text:#2b1b18;--muted:#7a625c;--accent:#7b2f3a;--accent-dark:#5d202a;--soft:#f3ded7;--border:#ead2cb;--cream:#fff3ed;--shadow:0 20px 50px rgba(84,37,43,.12)}
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:var(--bg);color:var(--text)}.wrap{max-width:1100px;margin:auto;padding:32px 18px}header{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:24px}.card{background:var(--card);border:1px solid var(--border);border-radius:22px;padding:20px;box-shadow:var(--shadow);margin-bottom:14px}input,button{padding:12px 14px;border-radius:14px;border:1px solid var(--border);font:inherit}button{background:var(--accent);color:white;font-weight:800;cursor:pointer}.muted{color:var(--muted)}pre{white-space:pre-wrap;background:#fffdfb;border:1px solid var(--border);padding:14px;border-radius:14px;overflow:auto}.badge{display:inline-block;background:var(--soft);color:var(--accent-dark);padding:5px 10px;border-radius:999px;font-weight:800;font-size:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Orders Admin</h1>
+      <p class="muted">Simple private order viewer. Do not share your admin PIN.</p>
+    </div>
+    <a href="./index.html">Back to shop</a>
+  </header>
+
+  <div class="card">
+    <input id="pin" type="password" placeholder="Admin PIN" />
+    <button onclick="loadOrders()">Load Orders</button>
+    <p class="muted" id="status"></p>
+  </div>
+
+  <div id="orders"></div>
+</div>
+<script>
+async function loadOrders(){
+  const pin=document.getElementById('pin').value.trim();
+  const status=document.getElementById('status');
+  const ordersEl=document.getElementById('orders');
+  status.textContent='Loading...';
+  ordersEl.innerHTML='';
+  try{
+    const res=await fetch('/api/orders?pin='+encodeURIComponent(pin));
+    const data=await res.json();
+    if(!res.ok){status.textContent=data.error||'Failed.';return;}
+    status.textContent=`Loaded ${data.orders.length} order(s).`;
+    ordersEl.innerHTML=data.orders.map(o=>`
+      <div class="card">
+        <h2>${o.orderRef} <span class="badge">${o.status||'New'}</span></h2>
+        <p><strong>${o.customer?.name||''}</strong> · ${o.customer?.phone||''} · ${o.customer?.email||''}</p>
+        <p class="muted">Rep: ${o.rep?.name||''} (${o.rep?.repCode||''}) · Fixed total: €${Number(o.totals?.fixedTotal||0).toFixed(2)} ${o.totals?.hasQuoteRequiredItems?'+ quote items':''}</p>
+        <pre>${JSON.stringify(o,null,2)}</pre>
+      </div>
+    `).join('');
+  }catch(e){status.textContent='Could not connect to backend.';}
+}
+</script>
+</body>
+</html>
