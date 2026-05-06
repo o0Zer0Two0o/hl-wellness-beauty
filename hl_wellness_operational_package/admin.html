@@ -108,6 +108,16 @@ button.secondary {
   color: var(--muted);
 }
 
+.success {
+  color: var(--success);
+  font-weight: 800;
+}
+
+.warning {
+  color: var(--warning);
+  font-weight: 800;
+}
+
 .stats {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -281,6 +291,38 @@ button.secondary {
   color: var(--muted);
 }
 
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.5);
+  z-index: 999;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.modal-card {
+  background: white;
+  padding: 24px;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 420px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+
+.modal-card input {
+  width: 100%;
+  margin-bottom: 12px;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 @media (max-width: 850px) {
   .stats {
     grid-template-columns: 1fr 1fr;
@@ -318,6 +360,7 @@ button.secondary {
     <div>
       <h1>Orders Admin</h1>
       <p class="muted">Private order viewer for HL Wellness & Beauty.</p>
+      <p class="muted" id="loggedInAs"></p>
     </div>
     <a href="./index.html">← Back to shop</a>
   </header>
@@ -331,7 +374,7 @@ button.secondary {
       <button onclick="loadOrders()">Load Orders</button>
     </div>
 
-    <p class="muted" id="loggedInAs"></p>
+    <p class="muted" id="status"></p>
   </div>
 
   <div id="dashboard" style="display:none;">
@@ -353,9 +396,12 @@ button.secondary {
         <strong id="statLatest">-</strong>
       </div>
     </div>
+
     <div style="margin-bottom:18px;">
-  <button onclick="openPasswordModal()">Change Password</button>
-</div>
+      <button id="changePasswordBtn" onclick="openPasswordModal()">Change Password</button>
+      <p class="muted" id="passwordHint"></p>
+    </div>
+
     <div class="tools">
       <input id="search" placeholder="Search by name, phone, email, order ref, rep..." oninput="renderOrders()" />
       <button class="secondary" onclick="loadOrders()">Refresh</button>
@@ -365,18 +411,41 @@ button.secondary {
   <div id="orders"></div>
 </div>
 
+<div id="passwordModal" class="modal">
+  <div class="modal-card">
+    <h2>Change Password</h2>
+    <p class="muted">Only rep accounts can change their own password. Master admin cannot change passwords here.</p>
+
+    <input id="newPassword" type="password" placeholder="New PIN" />
+
+    <div class="modal-actions">
+      <button onclick="changePassword()">Save</button>
+      <button class="secondary" onclick="closePasswordModal()">Cancel</button>
+    </div>
+
+    <p id="passwordStatus" class="muted"></p>
+  </div>
+</div>
+
 <script>
 let allOrders = [];
+let currentPin = "";
+let currentMode = "";
+let currentRepCode = "";
 
 async function loadOrders() {
   const pin = document.getElementById("pin").value.trim();
   const status = document.getElementById("status");
   const ordersEl = document.getElementById("orders");
   const dashboard = document.getElementById("dashboard");
+  const loggedInEl = document.getElementById("loggedInAs");
+  const changePasswordBtn = document.getElementById("changePasswordBtn");
+  const passwordHint = document.getElementById("passwordHint");
 
   status.textContent = "Loading orders...";
   ordersEl.innerHTML = "";
   dashboard.style.display = "none";
+  loggedInEl.textContent = "";
 
   try {
     const res = await fetch("/api/orders?pin=" + encodeURIComponent(pin));
@@ -387,8 +456,29 @@ async function loadOrders() {
       return;
     }
 
+    currentPin = pin;
+    currentMode = data.mode || "";
+    currentRepCode = data.repCode || "";
+
     allOrders = data.orders || [];
     status.textContent = `Loaded ${allOrders.length} order(s).`;
+
+    const names = {
+      "1847": "Darren",
+      "3729": "Yanice",
+      "6408": "Joshua",
+      "9152": "Upline"
+    };
+
+    if (currentMode === "master") {
+      loggedInEl.textContent = "Logged in as: MASTER ADMIN";
+      changePasswordBtn.style.display = "none";
+      passwordHint.textContent = "Master admin can view all orders. Password change is available only for rep accounts.";
+    } else {
+      loggedInEl.textContent = "Logged in as: " + (names[currentRepCode] || currentRepCode);
+      changePasswordBtn.style.display = "inline-block";
+      passwordHint.textContent = "You can change only your own admin PIN.";
+    }
 
     updateStats();
     dashboard.style.display = "block";
@@ -529,6 +619,56 @@ function renderOrders() {
   }).join("");
 }
 
+function openPasswordModal() {
+  if (currentMode === "master") {
+    alert("Master admin cannot change rep passwords here.");
+    return;
+  }
+
+  document.getElementById("passwordModal").style.display = "flex";
+}
+
+function closePasswordModal() {
+  document.getElementById("passwordModal").style.display = "none";
+  document.getElementById("passwordStatus").textContent = "";
+  document.getElementById("newPassword").value = "";
+}
+
+async function changePassword() {
+  const newPin = document.getElementById("newPassword").value.trim();
+  const status = document.getElementById("passwordStatus");
+
+  status.textContent = "Saving...";
+
+  try {
+    const res = await fetch("/api/change-password", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        currentPin,
+        newPin
+      })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      status.textContent = data.error || "Failed.";
+      return;
+    }
+
+    currentPin = newPin;
+    document.getElementById("pin").value = newPin;
+    status.textContent = "Password changed successfully.";
+    status.className = "success";
+
+  } catch {
+    status.textContent = "Connection failed.";
+  }
+}
+
 function infoLine(label, value) {
   return `
     <div class="info-line">
@@ -547,37 +687,5 @@ function escapeHtml(value) {
     .replaceAll("'", "&#039;");
 }
 </script>
-  <div id="passwordModal" style="
-display:none;
-position:fixed;
-inset:0;
-background:rgba(0,0,0,.5);
-z-index:999;
-align-items:center;
-justify-content:center;
-padding:20px;
-">
-
-  <div style="
-  background:white;
-  padding:24px;
-  border-radius:20px;
-  width:100%;
-  max-width:420px;
-  ">
-
-    <h2>Change Password</h2>
-
-    <input id="newPassword" type="password" placeholder="New PIN" style="width:100%;margin-bottom:12px;" />
-
-    <div style="display:flex;gap:10px;">
-      <button onclick="changePassword()">Save</button>
-      <button class="secondary" onclick="closePasswordModal()">Cancel</button>
-    </div>
-
-    <p id="passwordStatus" class="muted"></p>
-
-  </div>
-</div>
 </body>
 </html>
