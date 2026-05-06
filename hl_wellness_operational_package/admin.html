@@ -141,6 +141,10 @@ button.secondary {
   min-width: 260px;
 }
 
+.order-card {
+  overflow: hidden;
+}
+
 .order-head {
   display: flex;
   justify-content: space-between;
@@ -148,14 +152,31 @@ button.secondary {
   gap: 12px;
   flex-wrap: wrap;
   border-bottom: 1px solid var(--border);
-  padding-bottom: 14px;
-  margin-bottom: 16px;
+  padding-bottom: 16px;
+  margin-bottom: 18px;
 }
 
 .order-ref {
-  font-size: 1.35rem;
+  font-size: 1.45rem;
   font-weight: 900;
   color: var(--accent-dark);
+}
+
+.order-total-box {
+  text-align: right;
+  min-width: 180px;
+}
+
+.order-total-box span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.order-total-box strong {
+  display: block;
+  color: var(--accent);
+  font-size: 1.8rem;
 }
 
 .badge {
@@ -186,8 +207,24 @@ button.secondary {
   padding: 16px;
 }
 
-.info-box p {
-  margin: 7px 0;
+.info-box h3 {
+  margin-top: 0;
+}
+
+.info-line {
+  display: grid;
+  grid-template-columns: 125px 1fr;
+  gap: 8px;
+  padding: 7px 0;
+  border-bottom: 1px dashed var(--border);
+}
+
+.info-line:last-child {
+  border-bottom: none;
+}
+
+.info-line strong {
+  color: var(--accent-dark);
 }
 
 .item-list {
@@ -200,7 +237,7 @@ button.secondary {
   display: flex;
   justify-content: space-between;
   gap: 12px;
-  padding: 10px 0;
+  padding: 12px 0;
   border-bottom: 1px solid var(--border);
 }
 
@@ -208,23 +245,34 @@ button.secondary {
   border-bottom: none;
 }
 
+.item-name {
+  font-weight: 800;
+}
+
+.item-sub {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
 .total {
   margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
   font-size: 1.25rem;
   font-weight: 900;
   color: var(--accent);
 }
 
-.raw {
-  display: none;
-  white-space: pre-wrap;
-  background: #fffdfb;
+.notes-box {
+  margin-top: 18px;
+  background: var(--cream);
   border: 1px solid var(--border);
-  padding: 14px;
-  border-radius: 14px;
-  overflow: auto;
-  margin-top: 12px;
-  font-size: 0.9rem;
+  border-radius: 18px;
+  padding: 16px;
+}
+
+.notes-box h3 {
+  margin-top: 0;
 }
 
 .empty {
@@ -241,6 +289,10 @@ button.secondary {
   .order-grid {
     grid-template-columns: 1fr;
   }
+
+  .order-total-box {
+    text-align: left;
+  }
 }
 
 @media (max-width: 520px) {
@@ -250,6 +302,11 @@ button.secondary {
 
   input, button {
     width: 100%;
+  }
+
+  .info-line {
+    grid-template-columns: 1fr;
+    gap: 2px;
   }
 }
 </style>
@@ -386,74 +443,97 @@ function renderOrders() {
     return;
   }
 
-  ordersEl.innerHTML = filtered.map((order, index) => {
+  ordersEl.innerHTML = filtered.map(order => {
     const created = order.createdAt
       ? new Date(order.createdAt).toLocaleString()
       : "Unknown date";
+
+    const fixedTotal = Number(order.totals?.fixedTotal || 0).toFixed(2);
+    const hasQuote = order.totals?.hasQuoteRequiredItems;
 
     const items = (order.items || []).map(item => {
       const price = item.quoteRequired
         ? `<span class="badge quote">Quote Required</span>`
         : `€${Number(item.price || 0).toFixed(2)}`;
 
+      const lineTotal = item.quoteRequired
+        ? "Quote Required"
+        : `€${(Number(item.price || 0) * Number(item.quantity || 1)).toFixed(2)}`;
+
       return `
         <li>
-          <span>${escapeHtml(item.name || "Item")} x${item.quantity || 1}</span>
-          <strong>${price}</strong>
+          <div>
+            <div class="item-name">${escapeHtml(item.name || "Item")}</div>
+            <div class="item-sub">Quantity: ${item.quantity || 1} · Unit: ${price}</div>
+          </div>
+          <strong>${lineTotal}</strong>
         </li>
       `;
     }).join("");
 
     return `
-      <div class="card">
+      <div class="card order-card">
         <div class="order-head">
           <div>
             <div class="order-ref">${escapeHtml(order.orderRef || "No Ref")}</div>
             <div class="muted">${created}</div>
+            <div style="margin-top:8px;">
+              <span class="badge">${escapeHtml(order.status || "New")}</span>
+              ${hasQuote ? `<span class="badge quote">Contains Quote Item</span>` : ""}
+            </div>
           </div>
-          <div>
-            <span class="badge">${escapeHtml(order.status || "New")}</span>
+
+          <div class="order-total-box">
+            <span>Fixed total</span>
+            <strong>€${fixedTotal}</strong>
+            ${hasQuote ? `<span class="muted">+ quote required</span>` : ""}
           </div>
         </div>
 
         <div class="order-grid">
           <div class="info-box">
-            <h3>Customer</h3>
-            <p><strong>Name:</strong> ${escapeHtml(order.customer?.name || "-")}</p>
-            <p><strong>Phone:</strong> ${escapeHtml(order.customer?.phone || "-")}</p>
-            <p><strong>Email:</strong> ${escapeHtml(order.customer?.email || "-")}</p>
-            <p><strong>Fulfilment:</strong> ${escapeHtml(order.customer?.fulfillment || "-")}</p>
-            <p><strong>Payment:</strong> ${escapeHtml(order.customer?.paymentMethod || "-")}</p>
-            <p><strong>Address:</strong> ${escapeHtml(order.customer?.address || "-")}</p>
-            <p><strong>Notes:</strong> ${escapeHtml(order.customer?.notes || "-")}</p>
+            <h3>Customer Details</h3>
+            ${infoLine("Name", order.customer?.name)}
+            ${infoLine("Phone", order.customer?.phone)}
+            ${infoLine("Email", order.customer?.email)}
+            ${infoLine("Fulfilment", order.customer?.fulfillment)}
+            ${infoLine("Payment", order.customer?.paymentMethod)}
+            ${infoLine("Address", order.customer?.address)}
           </div>
 
           <div class="info-box">
-            <h3>Rep & Items</h3>
-            <p><strong>Rep:</strong> ${escapeHtml(order.rep?.name || "-")} (${escapeHtml(order.rep?.repCode || "-")})</p>
+            <h3>Assigned Rep & Items</h3>
+            ${infoLine("Rep", `${order.rep?.name || "-"} (${order.rep?.repCode || "-"})`)}
 
             <ul class="item-list">
               ${items || "<li>No items</li>"}
             </ul>
 
             <div class="total">
-              Total: €${Number(order.totals?.fixedTotal || 0).toFixed(2)}
-              ${order.totals?.hasQuoteRequiredItems ? "+ Quote Required Items" : ""}
+              Total: €${fixedTotal}
+              ${hasQuote ? "+ Quote Required Items" : ""}
             </div>
           </div>
         </div>
 
-        <button class="secondary" style="margin-top:14px;" onclick="toggleRaw(${index})">Show Raw</button>
-        <pre class="raw" id="raw-${index}">${escapeHtml(JSON.stringify(order, null, 2))}</pre>
+        ${order.customer?.notes ? `
+          <div class="notes-box">
+            <h3>Customer Notes</h3>
+            <p>${escapeHtml(order.customer.notes)}</p>
+          </div>
+        ` : ""}
       </div>
     `;
   }).join("");
 }
 
-function toggleRaw(index) {
-  const raw = document.getElementById("raw-" + index);
-  if (!raw) return;
-  raw.style.display = raw.style.display === "block" ? "none" : "block";
+function infoLine(label, value) {
+  return `
+    <div class="info-line">
+      <strong>${escapeHtml(label)}:</strong>
+      <span>${escapeHtml(value || "-")}</span>
+    </div>
+  `;
 }
 
 function escapeHtml(value) {
