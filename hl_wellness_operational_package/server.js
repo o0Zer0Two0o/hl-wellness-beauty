@@ -31,6 +31,13 @@ const ROOT = __dirname;
 const ORDERS_DIR = path.join(ROOT, "orders");
 const ORDERS_FILE = path.join(ORDERS_DIR, "orders.json");
 
+let repPins = {
+  "1847": process.env.ADMIN_PIN_1847,
+  "3729": process.env.ADMIN_PIN_3729,
+  "6408": process.env.ADMIN_PIN_6408,
+  "9152": process.env.ADMIN_PIN_9152
+};
+
 const REPS = {
   "1847": {
     name: "Darren",
@@ -303,14 +310,7 @@ function serveStatic(req, res) {
 
 function getOrdersForPin(pin) {
   const masterPin = process.env.MASTER_ADMIN_PIN;
-
-  let repPins = {
-  "1847": process.env.ADMIN_PIN_1847,
-  "3729": process.env.ADMIN_PIN_3729,
-  "6408": process.env.ADMIN_PIN_6408,
-  "9152": process.env.ADMIN_PIN_9152
-};
-
+  
   let allowedRepCode = null;
   let isMaster = false;
 
