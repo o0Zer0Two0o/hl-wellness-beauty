@@ -506,6 +506,67 @@ function updateStats() {
   document.getElementById("statSales").textContent = "€" + fixedSales.toFixed(2);
   document.getElementById("statQuotes").textContent = quoteOrders;
   document.getElementById("statLatest").textContent = latest;
+  document.getElementById("teamSummary")?.remove();
+
+  if (currentMode === "master") {
+
+  const reps = {
+    "1847": "Darren",
+    "3729": "Yanice",
+    "6408": "Joshua",
+    "9152": "Valerie"
+  };
+
+  let html = `
+    <div class="card" id="teamSummary">
+      <h2>Team Sales Summary</h2>
+
+      <div class="stats">
+  `;
+
+  Object.keys(reps).forEach(repCode => {
+
+    const repOrders = allOrders.filter(order =>
+      String(order.rep?.repCode) === repCode
+    );
+
+    const totalSales = repOrders.reduce((sum, order) => {
+      return sum + Number(order.totals?.fixedTotal || 0);
+    }, 0);
+
+    const quoteOrders = repOrders.filter(order =>
+      order.totals?.hasQuoteRequiredItems
+    ).length;
+
+    html += `
+      <div class="stat">
+        <span class="muted">${reps[repCode]}</span>
+
+        <strong>${repOrders.length}</strong>
+        <div>Total Orders</div>
+
+        <div style="margin-top:12px;">
+          <strong>€${totalSales.toFixed(2)}</strong>
+          <div>Total Sales</div>
+        </div>
+
+        <div style="margin-top:12px;">
+          <strong>${quoteOrders}</strong>
+          <div>Quote Orders</div>
+        </div>
+      </div>
+    `;
+  });
+
+  html += `
+      </div>
+    </div>
+  `;
+
+  document
+    .getElementById("dashboard")
+    .insertAdjacentHTML("beforeend", html);
+}
 }
 
 function renderOrders() {
