@@ -50,21 +50,21 @@ const REPS = {
     name: "Yanice",
     code: "YA",
     herbalifeId: process.env.REP_3729_HERBALIFE_ID || "MTY0001890",
-    email: "dummy@gmail.com"
+    email: "malliayanice@gmail.com"
   },
 
   "6408": {
     name: "Joshua",
     code: "JO",
     herbalifeId: process.env.REP_6408_HERBALIFE_ID || "MTY0001891",
-    email: "dummy@gmail.com"
+    email: "joshua_sultana@hotmail.com"
   },
 
   "9152": {
     name: "Valerie",
     code: "UP",
     herbalifeId: process.env.REP_9152_HERBALIFE_ID || "MT16060798",
-    email: "dummy@gmail.com"
+    email: "valerie_xx3@hotmail.com""
   }
 };
 
