@@ -64,7 +64,7 @@ const REPS = {
     name: "Valerie",
     code: "UP",
     herbalifeId: process.env.REP_9152_HERBALIFE_ID || "MT16060798",
-    email: "valerie_xx3@hotmail.com""
+    email: "valerie_xx3@hotmail.com"
   }
 };
 
