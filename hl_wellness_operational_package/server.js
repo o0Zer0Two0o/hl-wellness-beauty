@@ -215,8 +215,59 @@ HL Wellness & Beauty
 `.trim();
 }
 
-async function sendOrderEmails(order) {
+async function sendBrevoEmail(apiKey, payload) {
+  const response = await fetch("https://api.brevo.com/v3/smtp/email", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "api-key": apiKey
+    },
+    body: JSON.stringify(payload)
+  });
 
+  const text = await response.text();
+
+  if (!response.ok) {
+    throw new Error(`Brevo error ${response.status}: ${text}`);
+  }
+
+  return text;
+}
+
+function buildItemsText(order, items, title) {
+  const itemLines = items.map(item => {
+    const lineTotal = item.quoteRequired
+      ? "Quote Required"
+      : money(Number(item.price || 0) * Number(item.quantity || 1));
+
+    return `- ${item.name} x${item.quantity || 1} — ${lineTotal}`;
+  }).join("\n");
+
+  return `
+${title}
+
+Order Reference: ${order.orderRef}
+Date: ${order.createdAt}
+Status: ${order.status}
+
+Original Assigned Rep:
+${order.rep?.name || "Unknown"} (${order.rep?.repCode || "no code"})
+
+Customer:
+${order.customer?.name || ""}
+Phone: ${order.customer?.phone || ""}
+Email: ${order.customer?.email || ""}
+Fulfilment: ${order.customer?.fulfillment || ""}
+Payment: ${order.customer?.paymentMethod || order.paymentMethod || ""}
+Address: ${order.customer?.address || ""}
+Notes: ${order.customer?.notes || ""}
+
+Items:
+${itemLines}
+`.trim();
+}
+
+async function sendOrderEmails(order) {
   const apiKey = process.env.BREVO_API_KEY;
 
   if (!apiKey) {
@@ -226,59 +277,79 @@ async function sendOrderEmails(order) {
     };
   }
 
-  const senderEmail =
-    process.env.SMTP_FROM || "darrencaruana47@gmail.com";
+  const senderEmail = process.env.SMTP_FROM || "darrencaruana47@gmail.com";
 
-  const adminEmail =
-    process.env.ORDER_ADMIN_EMAIL || "darrencaruana47@gmail.com";
+  const fixedItems = (order.items || []).filter(item => !item.quoteRequired);
+  const quoteItems = (order.items || []).filter(item => item.quoteRequired);
 
-  const repEmail = order.rep?.email;
+  const assignedRepEmail = order.rep?.email;
 
-  const sellerRecipients = [
-    { email: adminEmail },
-    ...(repEmail ? [{ email: repEmail }] : [])
-  ];
+  const darrenEmail = REPS["1847"]?.email;
+  const valerieEmail = REPS["9152"]?.email;
+
+  function uniqueEmails(emails) {
+    const seen = new Set();
+
+    return emails
+      .filter(Boolean)
+      .filter(email => {
+        const lower = email.toLowerCase();
+
+        if (seen.has(lower)) {
+          return false;
+        }
+
+        seen.add(lower);
+        return true;
+      })
+      .map(email => ({ email }));
+  }
 
   try {
-
-    // Admin / Rep email
-    await fetch("https://api.brevo.com/v3/smtp/email", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "api-key": apiKey
-      },
-      body: JSON.stringify({
+    if (fixedItems.length > 0 && assignedRepEmail) {
+      await sendBrevoEmail(apiKey, {
         sender: {
           name: "HL Wellness & Beauty",
           email: senderEmail
         },
-        to: sellerRecipients,
-        subject: `New HL Wellness Order ${order.orderRef}`,
-        textContent: buildSellerOrderText(order)
-      })
-    });
+        to: uniqueEmails([assignedRepEmail]),
+        subject: `New Product Order ${order.orderRef}`,
+        textContent: buildItemsText(
+          order,
+          fixedItems,
+          "NEW PRODUCT ORDER"
+        )
+      });
+    }
 
-    // Customer email
-    await fetch("https://api.brevo.com/v3/smtp/email", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "api-key": apiKey
-      },
-      body: JSON.stringify({
+    if (quoteItems.length > 0) {
+      await sendBrevoEmail(apiKey, {
         sender: {
           name: "HL Wellness & Beauty",
           email: senderEmail
         },
-        to: [
-          {
-            email: order.customer.email
-          }
-        ],
-        subject: `Order received ${order.orderRef}`,
-        textContent: buildCustomerOrderText(order)
-      })
+        to: uniqueEmails([darrenEmail, valerieEmail]),
+        subject: `New Quote Request ${order.orderRef}`,
+        textContent: buildItemsText(
+          order,
+          quoteItems,
+          "NEW QUOTE / COACHING REQUEST"
+        )
+      });
+    }
+
+    await sendBrevoEmail(apiKey, {
+      sender: {
+        name: "HL Wellness & Beauty",
+        email: senderEmail
+      },
+      to: [
+        {
+          email: order.customer.email
+        }
+      ],
+      subject: `Order received ${order.orderRef}`,
+      textContent: buildCustomerOrderText(order)
     });
 
     console.log("Emails sent successfully.");
@@ -286,9 +357,7 @@ async function sendOrderEmails(order) {
     return {
       sent: true
     };
-
   } catch (error) {
-
     console.error("Brevo email error:", error);
 
     return {
